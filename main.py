@@ -1,27 +1,57 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+from datetime import datetime
+import pytz
+import sqlite3
 
 app = FastAPI()
 
-class Msg(BaseModel):
-    msg: str
-
+class DataDetail(BaseModel):
+    Device: str
+    Lat: float
+    Lng: float
+    Dust: int
+    Temp: float
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World. Welcome to FastAPI!"}
+    return {"message": "Hello. Welcome to Embeded Project App!"}
 
+@app.get("/data")
+async def get_data():
+    conn = sqlite3.connect("embed-data.db")
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM embed")
+    rows = cur.fetchall()
+    data = [dict(row) for row in rows]
+    return data
 
-@app.get("/path")
-async def demo_get():
-    return {"message": "This is /path endpoint, use a post request to transform the text to uppercase"}
+@app.post("/add-data")
+async def add_data(detail_input: DataDetail):
+    conn = sqlite3.connect("embed-data.db")
+    cursor = conn.cursor()
 
+    query = "INSERT INTO embed (Device, Time, Lat, Lng, Dust, Temp) VALUES (?, ?, ?, ?, ?, ?)"
+    cursor.execute(query, (detail_input.Device, datetime.now(pytz.timezone('Asia/Bangkok')), detail_input.Lat, detail_input.Lng, detail_input.Dust, detail_input.Temp))
 
-@app.post("/path")
-async def demo_post(inp: Msg):
-    return {"message": inp.msg.upper()}
+    conn.commit()
+    conn.close()
+    return {"message": "Item added to database"}
 
+@app.post("/view-input")
+async def create_item(itema: DataDetail):
+    return itema
 
-@app.get("/path/{path_id}")
-async def demo_get_path_id(path_id: int):
-    return {"message": f"This is /path/{path_id} endpoint, use post request to retrieve result"}
+@app.get("/delete")
+async def get_data():
+    conn = sqlite3.connect("embed-data.db")
+    cursor = conn.cursor()
+
+    query = "DELETE FROM embed;"
+    cursor.execute(query,)
+
+    conn.commit()
+    conn.close()
+    return {"message": "Delete all Item in database"}
+    return data
