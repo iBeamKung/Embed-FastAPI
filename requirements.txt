@@ -16,4 +16,3 @@ watchfiles==0.18.1
 websockets==10.4
 pytz
 datetime
-sqlite3
