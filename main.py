@@ -13,6 +13,14 @@ class DataDetail(BaseModel):
     Dust: int
     Temp: float
 
+class RawDataDetail(BaseModel):
+    Device: str
+    Time: str
+    Lat: float
+    Lng: float
+    Dust: int
+    Temp: float
+
 @app.get("/")
 async def root():
     return {"message": "Hello. Welcome to Embeded Project App!"}
@@ -38,6 +46,18 @@ async def add_data(detail_input: DataDetail):
     conn.commit()
     conn.close()
     return {"message": "Item added to database"}
+
+@app.post("/add-rawdata")
+async def add_rawdata(detail_input: RawDataDetail):
+    conn = sqlite3.connect("embed-data.db")
+    cursor = conn.cursor()
+
+    query = "INSERT INTO embed (Device, Time, Lat, Lng, Dust, Temp) VALUES (?, ?, ?, ?, ?, ?)"
+    cursor.execute(query, (detail_input.Device, detail_input.Time, detail_input.Lat, detail_input.Lng, detail_input.Dust, detail_input.Temp))
+
+    conn.commit()
+    conn.close()
+    return {"message": "Item Raw added to database"}
 
 @app.post("/view-input")
 async def create_item(itema: DataDetail):
